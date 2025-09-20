@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Finance Tracker</title>
+  <style>
+    :root{
+      --bg:#f0f2f5;
+      --card:#ffffff;
+      --primary:#2c3e50;
+      --accent:#1abc9c;
+      --muted:#7f8c8d;
+      --btn:#27ae60;
+      --danger:#e74c3c;
+      --blue:#3498db;
+      --glass-shadow: 0 8px 20px rgba(44,62,80,0.08);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:#222;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* NAVBAR */
+    .navbar{
+      background:var(--primary);
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 18px;
+      position:sticky;
+      top:0;
+      z-index:1100;
+      box-shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    .navbar-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .brand{
+      font-weight:700;
+      letter-spacing:0.2px;
+      font-size:18px;
+    }
+
+    .nav-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .balance{
+      font-weight:600;
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      padding:6px 10px;
+      border-radius:8px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      min-width:170px;
+      justify-content:center;
+    }
+    .balance .val{ font-size:15px; }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .btn{
+      border:0;
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .btn-ghost{
+      background:transparent;
+      color:white;
+    }
+    .btn-full{
+      background:var(--blue);
+      color:white;
+    }
+    .btn-burger{
+      font-size:20px;
+      padding:6px 10px;
+      border-radius:8px;
+      background:transparent;
+      color:white;
+      border:1px solid rgba(255,255,255,0.06);
+    }
+
+    /* DROPDOWN */
+    .nav-menu{
+      display:none;
+      position:absolute;
+      top:56px;
+      right:12px;
+      width:220px;
+      background:#34495e;
+      border-radius:10px;
+      overflow:hidden;
+      z-index:1200;
+      box-shadow:0 10px 30px rgba(0,0,0,0.12);
+    }
+    .nav-menu a, .nav-menu button{
+      display:block;
+      width:100%;
+      text-align:left;
+      padding:12px 14px;
+      color:white;
+      text-decoration:none;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      background:transparent;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .nav-menu a:hover, .nav-menu button:hover{
+      background:var(--accent);
+      color: #063;
+    }
+
+    /* LAYOUT */
+    .wrap{ width:92%; max-width:1000px; margin:22px auto; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:20px;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      padding:18px;
+      box-shadow:var(--glass-shadow);
+      overflow:hidden;
+    }
+
+    h2{ margin:6px 0 18px 0; text-align:center; color:var(--primary); }
+
+    .form-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    input[type="text"], input[type="number"], input[type="date"], select{
+      flex:1;
+      padding:12px;
+      border-radius:8px;
+      border:1px solid #e6e9ee;
+      font-size:15px;
+      outline:none;
+    }
+    input[type="number"]{ max-width:180px; }
+
+    .submit{
+      background:var(--btn);
+      color:white;
+      border:0;
+      padding:12px 16px;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+      min-width:140px;
+    }
+    .submit:hover{ filter:brightness(.95) }
+
+    .filters{ display:flex; gap:12px; align-items:center; margin-top:8px; flex-wrap:wrap; color:var(--muted);}
+
+    .totals{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+    .totals .big{ font-weight:800; font-size:18px; }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:14px;
+      font-size:14px;
+    }
+    th,td{
+      padding:10px 12px;
+      border-bottom:1px solid #f1f3f6;
+      text-align:center;
+    }
+    th{ background:linear-gradient(90deg,var(--blue),#2c82c9); color:white; font-weight:700; }
+    tr:nth-child(even){ background:#fbfdff; }
+
+    .action-btn{
+      padding:6px 10px;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
+      margin-right:6px;
+    }
+    .action-edit{ background:#f39c12; color:white; }
+    .action-delete{ background:var(--danger); color:white; }
+
+    /* responsive drop full width on small screens */
+    @media (max-width:768px){
+      .nav-menu{ left:0; right:0; width:100%; top:56px; border-radius:0; }
+      .balance{ min-width:120px; font-size:13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar" role="navigation">
+    <div class="navbar-left">
+      <div class="brand">Finance Tracker</div>
+    </div>
+
+    <div class="nav-right">
+      <div class="balance" title="Income − Expenses">
+        <div style="font-size:12px;color:#eef">Balance</div>
+        <div class="val">₱<span id="balance">0.00</span></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-burger" id="burgerBtn" onclick="toggleMenu()">☰</button>
+        <button class="btn btn-full" onclick="toggleFullScreen()">Fullscreen</button>
+      </div>
+    </div>
+
+    <div class="nav-menu" id="navMenu" aria-hidden="true">
+      <a href="#" onclick="showSection('income');return false;">Income</a>
+      <a href="#" onclick="showSection('expenses');return false;">Expenses</a>
+      <button onclick="editBalance()">Edit Balance</button>
+      <button onclick="resetManualBalance()">Reset Manual Balance</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+
+      <div class="card" id="incomeSection">
+        <h2>Income Tracker</h2>
+
+        <div class="form-row">
+          <input id="incomeName" type="text" placeholder="Income source (e.g., Salary, Freelance)">
+          <input id="incomeAmount" type="number" step="0.01" placeholder="Amount">
+          <input id="incomeDate" type="date">
+          <button id="incomeSubmitBtn" class="submit" onclick="createOrUpdate('income')">Add Income</button>
+        </div>
+
+        <div class="filters">
+          <label style="color:var(--muted)">Filter by date:</label>
+          <input id="incomeDateFilter" type="date" onchange="filterRecords('income')">
+        </div>
+
+        <div class="totals">
+          <div class="big" style="color:var(--accent)">Total Income: ₱<span id="totalIncome">0.00</span></div>
+          <div style="color:var(--muted)">Tip: Click "Edit" to update entries</div>
+        </div>
+
+        <table id="incomeTable">
+          <thead>
+            <tr><th>Source</th><th>Amount</th><th>Date</th><th>Actions</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="expensesSection" style="display:none;">
+        <h2>Expenses Tracker</h2>
+
+        <div class="form-row">
+          <input id="expenseName" type="text" placeholder="Expense name (e.g., Food, Bills)">
+          <input id="expenseAmount" type="number" step="0.01" placeholder="Amount">
+          <input id="expenseDate" type="date">
+          <button id="expenseSubmitBtn" class="submit" onclick="createOrUpdate('expenses')">Add Expense</button>
+        </div>
+
+        <div class="filters">
+          <label style="color:var(--muted)">Filter by date:</label>
+          <input id="dateFilter" type="date" onchange="filterRecords('expenses')">
+        </div>
+
+        <div class="totals">
+          <div class="big" style="color:var(--danger)">Total Expenses: ₱<span id="totalExpenses">0.00</span></div>
+          <div style="color:var(--muted)"></div>
+        </div>
+
+        <table id="expensesTable">
+          <thead>
+            <tr><th>Expense</th><th>Amount</th><th>Date</th><th>Actions</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // === Globals ===
+    const API_URL = 'http://127.0.0.1:8080/money-tracker/api.php';
+    let manualBalance = null;
+    let editState = { type: null, id: null, oldAmount: 0 };
+
+    // Helper: handle API fetch calls
+    async function apiCall(action, type, data = {}) {
+      let url = `${API_URL}?action=${action}&type=${type}`;
+      const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      };
+
+      if (action === 'read') {
+        let readUrl = `${API_URL}?action=read&type=${type}`;
+        if (data.dateFilter) {
+          readUrl += `&dateFilter=${data.dateFilter}`;
+        }
+        return fetch(readUrl, { method: 'GET' });
+      } else if (action === 'read_one') {
+         return fetch(`${API_URL}?action=read_one&type=${type}&id=${data.id}`, { method: 'GET' });
+      }
+
+      return fetch(url, options);
+    }
+
+    // Load and render data for a type
+    async function loadData(type) {
+      try {
+        const response = await apiCall('read', type, {});
+        if (!response.ok) throw new Error('Failed to fetch data.');
+        const result = await response.json();
+        
+        if (result.success) {
+          renderTable(type, result.data);
+          updateTotal(type, result.data);
+          updateBalanceDisplay();
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    }
+
+    // Render table rows
+    function renderTable(type, records){
+      const tbody = document.querySelector(`#${type}Table tbody`);
+      tbody.innerHTML = '';
+      records.forEach(r => {
+        const tr = document.createElement('tr');
+        const id = r.id;
+        tr.innerHTML = `
+          <td>${escapeHtml(r.name)}</td>
+          <td>₱${Number(r.amount).toFixed(2)}</td>
+          <td>${escapeHtml(r.date)}</td>
+          <td>
+            <button class="action-btn action-edit" onclick="editRecord('${type}', ${id})">Edit</button>
+            <button class="action-btn action-delete" onclick="deleteRecord('${type}', ${id})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Small helper to avoid HTML injection in table cells
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    // Update totals display
+    function updateTotal(type, records){
+      const total = records.reduce((acc, rec) => acc + Number(rec.amount || 0), 0);
+      if (type === 'expenses'){
+        document.getElementById('totalExpenses').textContent = total.toFixed(2);
+      } else {
+        document.getElementById('totalIncome').textContent = total.toFixed(2);
+      }
+    }
+
+    // Update balance display (manual override wins)
+    function updateBalanceDisplay(){
+      let bal;
+      if (manualBalance !== null && !isNaN(manualBalance)){
+        bal = manualBalance;
+      } else {
+        const inc = parseFloat(document.getElementById('totalIncome').textContent) || 0;
+        const exp = parseFloat(document.getElementById('totalExpenses').textContent) || 0;
+        bal = inc - exp;
+      }
+      const el = document.getElementById('balance');
+      el.textContent = Number(bal || 0).toFixed(2);
+      // color cue
+      const container = el.parentElement;
+      if (bal < 0) {
+        container.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))';
+        container.style.color = '#fff';
+      } else {
+        container.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))';
+        container.style.color = 'white';
+      }
+    }
+
+    // Create or Update entry
+    async function createOrUpdate(type){
+      const nameEl = document.getElementById(type==='expenses'?'expenseName':'incomeName');
+      const amountEl = document.getElementById(type==='expenses'?'expenseAmount':'incomeAmount');
+      const dateEl = document.getElementById(type==='expenses'?'expenseDate':'incomeDate');
+
+      const name = (nameEl.value || '').trim();
+      const amount = parseFloat(amountEl.value);
+      const date = dateEl.value;
+
+      if (!name || isNaN(amount) || !date) {
+        alert('Please enter name, valid amount and date.');
+        return;
+      }
+
+      const data = { type, name, amount, date };
+
+      try {
+        let response;
+        if (editState.type === type && editState.id !== null){
+          data.id = editState.id;
+          response = await apiCall('update', type, data);
+
+          if (manualBalance !== null) {
+              const diff = amount - editState.oldAmount;
+              if (type === 'income') manualBalance += diff;
+              else manualBalance -= diff;
+              localStorage.setItem('manualBalance', manualBalance);
+          }
+        } else {
+          response = await apiCall('create', type, data);
+
+          if (manualBalance !== null) {
+              if (type === 'income') manualBalance += amount;
+              else manualBalance -= amount;
+              localStorage.setItem('manualBalance', manualBalance);
+          }
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+          editState = { type: null, id: null, oldAmount: 0 };
+          document.getElementById(type==='expenses'?'expenseSubmitBtn':'incomeSubmitBtn').textContent = `Add ${type==='expenses'?'Expense':'Income'}`;
+          
+          nameEl.value = '';
+          amountEl.value = '';
+          dateEl.value = '';
+
+          loadData('income');
+          loadData('expenses');
+        } else {
+          alert('Operation failed: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Error in createOrUpdate:', error);
+        alert('An error occurred. Please check the console.');
+      }
+    }
+
+    // Edit record -> populate fields and set editState
+    async function editRecord(type, id){
+      try {
+        const response = await apiCall('read_one', type, { id });
+        if (!response.ok) throw new Error('Failed to fetch record for editing.');
+        const result = await response.json();
+
+        if (result.success) {
+          const rec = result.data;
+          const name = rec.name, amount = rec.amount, date = rec.date;
+          
+          if (type === 'expenses'){
+            document.getElementById('expenseName').value = name;
+            document.getElementById('expenseAmount').value = amount;
+            document.getElementById('expenseDate').value = date;
+            document.getElementById('expenseSubmitBtn').textContent = 'Update Expense';
+          } else {
+            document.getElementById('incomeName').value = name;
+            document.getElementById('incomeAmount').value = amount;
+            document.getElementById('incomeDate').value = date;
+            document.getElementById('incomeSubmitBtn').textContent = 'Update Income';
+          }
+
+          editState = { type, id, oldAmount: parseFloat(amount) };
+          showSection(type);
+        } else {
+          alert('Record not found.');
+        }
+      } catch (error) {
+        console.error('Error editing record:', error);
+        alert('An error occurred while fetching the record.');
+      }
+    }
+
+    // Delete record and adjust manual balance if in manual mode
+    async function deleteRecord(type, id){
+      try {
+        const response = await apiCall('read_one', type, { id });
+        if (!response.ok) throw new Error('Failed to fetch amount for deletion.');
+        const readResult = await response.json();
+        const amount = readResult.data.amount;
+
+        if (!confirm(`Delete this ${type.slice(0,-1)} entry of ₱${Number(amount).toFixed(2)}?`)) return;
+
+        const deleteResponse = await apiCall('delete', type, { id });
+        const deleteResult = await deleteResponse.json();
+
+        if (deleteResult.success) {
+          if (manualBalance !== null){
+            if (type === 'income') manualBalance -= parseFloat(amount);
+            else manualBalance += parseFloat(amount);
+            localStorage.setItem('manualBalance', manualBalance);
+          }
+          
+          loadData('income');
+          loadData('expenses');
+        } else {
+          alert('Deletion failed: ' + deleteResult.message);
+        }
+      } catch (error) {
+        console.error('Error deleting record:', error);
+        alert('An error occurred during deletion.');
+      }
+    }
+
+    // Filter records by date (renders filtered table only)
+    async function filterRecords(type){
+      const filterDate = document.getElementById(type==='expenses'?'dateFilter':'incomeDateFilter').value;
+      try {
+        const response = await apiCall('read', type, { dateFilter: filterDate });
+        if (!response.ok) throw new Error('Failed to filter data.');
+        const result = await response.json();
+        
+        if (result.success) {
+          renderTable(type, result.data);
+          updateTotal(type, result.data);
+          updateBalanceDisplay();
+        }
+      } catch (error) {
+        console.error('Error filtering data:', error);
+      }
+    }
+    
+    // NAV & UI helpers
+    function toggleMenu(){
+      const m = document.getElementById('navMenu');
+      m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+      m.setAttribute('aria-hidden', m.style.display === 'none' ? 'true' : 'false');
+    }
+    function showSection(section){
+      document.getElementById('incomeSection').style.display = section==='income' ? 'block' : 'none';
+      document.getElementById('expensesSection').style.display = section==='expenses' ? 'block' : 'none';
+      // close menu
+      document.getElementById('navMenu').style.display = 'none';
+      editState = { type: null, id: null, oldAmount: 0 };
+      // reset buttons text
+      document.getElementById('incomeSubmitBtn').textContent = 'Add Income';
+      document.getElementById('expenseSubmitBtn').textContent = 'Add Expense';
+    }
+
+    // Edit balance manually
+    function editBalance(){
+      const current = manualBalance !== null ? manualBalance : (parseFloat(document.getElementById('totalIncome').textContent || 0) - parseFloat(document.getElementById('totalExpenses').textContent || 0));
+      let v = prompt('Enter your new balance (will override auto-calculation):', Number(current || 0).toFixed(2));
+      if (v === null) return;
+      v = v.trim();
+      if (v === '' || isNaN(parseFloat(v))) { alert('Invalid number'); return; }
+      manualBalance = parseFloat(v);
+      localStorage.setItem('manualBalance', manualBalance);
+      updateBalanceDisplay();
+      document.getElementById('navMenu').style.display = 'none';
+    }
+
+    // Reset manual balance to switch back to auto-calculated mode
+    function resetManualBalance(){
+      manualBalance = null;
+      localStorage.removeItem('manualBalance');
+      loadData('income');
+      loadData('expenses');
+      document.getElementById('navMenu').style.display = 'none';
+    }
+
+    // Fullscreen
+    function toggleFullScreen(){
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Close nav menu when clicking outside
+    window.addEventListener('click', (e)=>{
+      const menu = document.getElementById('navMenu');
+      const btn = document.getElementById('burgerBtn');
+      if (!menu.contains(e.target) && !btn.contains(e.target)){
+        menu.style.display = 'none';
+      }
+    });
+
+    // init on load
+    window.onload = () => {
+      // load manual balance if any
+      manualBalance = localStorage.getItem('manualBalance') !== null ? parseFloat(localStorage.getItem('manualBalance')) : null;
+
+      // initial load
+      loadData('income');
+      loadData('expenses');
+      showSection('income');
+    };
+  </script>
+</body>
+</html>
